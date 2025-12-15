@@ -158,8 +158,8 @@
   <h1>준성셜록</h1>
 
   <div class="row">
-    <label for="seed">방번호(시드)</label>
-    <input id="seed" placeholder="예: 1234 또는 abc-room" />
+    <label for="seed">방제목</label>
+    <input id="seed" placeholder="예: 숫자 또는 문자" />
   </div>
 
   <div class="row">
@@ -289,7 +289,7 @@
     const seed = seedEl.value.trim();
 
     if (!seed) {
-      outEl.innerHTML = `<div class="err">시드 넣어주세요</div>`;
+      outEl.innerHTML = `<div class="err">방제목 넣어주세요</div>`;
       return;
     }
     if (!selected) {
@@ -325,3 +325,4 @@
 </script>
 </body>
 </html>
+
