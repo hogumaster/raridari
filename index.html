@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>준성셜록</title>
+  <style>
+    :root{
+      --bg:#000;
+      --panel:#0f0f10;
+      --border:#222;
+      --text:#f5f5f5;
+      --muted:#9aa0a6;
+      --danger:#ff3b30;
+    }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 22px;
+      max-width: 760px;
+      margin-inline: auto;
+    }
+
+    h1{ margin: 4px 0 16px; font-size: 26px; }
+
+    .row{
+      margin: 12px 0;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    label{ color: var(--muted); font-weight: 700; }
+
+    input, button{
+      padding: 12px 14px;
+      font-size: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      outline: none;
+    }
+
+    input{ flex:1; min-width: 240px; }
+
+    button{ cursor:pointer; }
+    button:active{ transform: translateY(1px); }
+
+    button.primary{
+      background: #fff;
+      color:#000;
+      border-color:#fff;
+      font-weight: 900;
+    }
+
+    button.ghost{
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .picks{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pick{
+      width: 64px;
+      height: 64px;
+      display:grid;
+      place-items:center;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #0b0b0c;
+      font-weight: 900;
+      user-select:none;
+    }
+
+    .pick small{
+      display:block;
+      margin-top:2px;
+      font-size:11px;
+      color: var(--muted);
+      font-weight:700;
+    }
+
+    .pick.selected{
+      border-color:#fff;
+      background:#fff;
+      color:#000;
+    }
+
+    .pick.e{ border-color:#3a1010; }
+    .pick.e.selected{
+      border-color: var(--danger);
+      background: var(--danger);
+      color:#000;
+    }
+
+    #out{
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #070707;
+      min-height: 64px;
+    }
+
+    .cards{
+      font-weight: 900;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .tagline{
+      color: var(--muted);
+      font-weight: 800;
+      margin-left: 8px;
+      font-size: 14px;
+    }
+
+    .sumBox{
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #151515;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .chip{
+      border: 1px solid var(--border);
+      background: #0b0b0c;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .muted{
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .err{ color: var(--danger); font-weight: 900; }
+  </style>
+</head>
+<body>
+  <h1>준성셜록</h1>
+
+  <div class="row">
+    <label for="seed">방번호(시드)</label>
+    <input id="seed" placeholder="예: 1234 또는 abc-room" />
+  </div>
+
+  <div class="row">
+    <label>플레이어 선택</label>
+    <div class="picks" id="picks">
+      <div class="pick" data-p="a">A<small>플레이어</small></div>
+      <div class="pick" data-p="b">B<small>플레이어</small></div>
+      <div class="pick" data-p="c">C<small>플레이어</small></div>
+      <div class="pick" data-p="d">D<small>플레이어</small></div>
+      <div class="pick e" data-p="e">E<small>범인</small></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <button class="primary" id="btn">확인</button>
+    <button class="ghost" id="reset">초기화</button>
+  </div>
+
+  <div id="out">
+    <div class="muted">시드를 입력하고 플레이어를 선택하세요.</div>
+  </div>
+
+<script>
+  const CARDS = [
+    { name: "세바스찬 모런", tags: ["해골","주먹"] },
+    { name: "아이린 애들러", tags: ["주먹","전구","목걸이"] },
+    { name: "레스트레이드 경감", tags: ["뱃지","눈","책"] },
+    { name: "그렉슨 경감", tags: ["뱃지","주먹","책"] },
+    { name: "베인즈 경감", tags: ["뱃지","전구"] },
+    { name: "브래드 스트리트 경감", tags: ["뱃지","주먹"] },
+    { name: "홉킨스 경감", tags: ["뱃지","파이프","눈"] },
+    { name: "셜록홈즈", tags: ["파이프","전구","주먹"] },
+    { name: "존 왓슨", tags: ["파이프","눈","주먹"] },
+    { name: "마이크로 홈즈", tags: ["파이프","전구","책"] },
+    { name: "허드슨 부인", tags: ["파이프","목걸이"] },
+    { name: "메리 모스턴", tags: ["책","목걸이"] },
+    { name: "제임스 모리어티", tags: ["해골","전구"] }
+  ];
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function xmur3(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function() {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= (h >>> 16);
+      return h >>> 0;
+    };
+  }
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle(arr, seedInt) {
+    const rand = mulberry32(seedInt);
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function deal(seedStr) {
+    const seedInt = xmur3(seedStr)();
+    const shuffled = seededShuffle(CARDS, seedInt);
+    return {
+      a: shuffled.slice(0, 3),
+      b: shuffled.slice(3, 6),
+      c: shuffled.slice(6, 9),
+      d: shuffled.slice(9, 12),
+      e: shuffled.slice(12, 13)
+    };
+  }
+
+  // ✅ 태그 합산
+  function sumTags(cards) {
+    const counts = {};
+    for (const c of cards) {
+      for (const t of c.tags) counts[t] = (counts[t] || 0) + 1;
+    }
+    // 보기 좋게 정렬(많은 순 -> 가나다)
+    return Object.entries(counts)
+      .sort((a,b) => (b[1]-a[1]) || a[0].localeCompare(b[0], "ko"))
+      .map(([tag, n]) => ({ tag, n }));
+  }
+
+  const seedEl = document.getElementById("seed");
+  const outEl = document.getElementById("out");
+  const picksEl = document.getElementById("picks");
+  const btnEl = document.getElementById("btn");
+  const resetEl = document.getElementById("reset");
+
+  let selected = null;
+
+  function setSelected(p) {
+    selected = p;
+    document.querySelectorAll(".pick").forEach(el => {
+      el.classList.toggle("selected", el.dataset.p === p);
+    });
+  }
+
+  picksEl.addEventListener("click", (e) => {
+    const el = e.target.closest(".pick");
+    if (!el) return;
+    setSelected(el.dataset.p);
+  });
+
+  btnEl.addEventListener("click", () => {
+    const seed = seedEl.value.trim();
+
+    if (!seed) {
+      outEl.innerHTML = `<div class="err">시드 넣어주세요</div>`;
+      return;
+    }
+    if (!selected) {
+      outEl.innerHTML = `<div class="err">플레이어를 선택하세요</div>`;
+      return;
+    }
+
+    const myCards = deal(seed)[selected];
+    const sums = sumTags(myCards);
+
+    outEl.innerHTML = `
+      <div class="cards">
+        ${myCards.map(c => {
+          const name = escapeHtml(c.name);
+          const tags = c.tags.map(escapeHtml).join(", ");
+          return `🃏 ${name} <span class="tagline">[${tags}]</span>`;
+        }).join("<br>")}
+      </div>
+
+      <div class="sumBox">
+        <div class="muted" style="margin:0; font-weight:900;">최종합</div>
+        ${sums.map(x => `<div class="chip">${escapeHtml(x.tag)} ${x.n}</div>`).join("")}
+      </div>
+    `;
+  });
+
+  resetEl.addEventListener("click", () => {
+    seedEl.value = "";
+    selected = null;
+    document.querySelectorAll(".pick").forEach(el => el.classList.remove("selected"));
+    outEl.innerHTML = `<div class="muted">시드를 입력하고 플레이어를 선택하세요.</div>`;
+  });
+</script>
+</body>
+</html>
