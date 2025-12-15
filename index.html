@@ -152,37 +152,117 @@
     }
 
     .err{ color: var(--danger); font-weight: 900; }
+
+    /* ====== 🔐 잠금 화면 스타일 ====== */
+    #lock{
+      min-height: 80vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      text-align:center;
+    }
+    #lock h2{
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 900;
+    }
+    #lock .box{
+      width:min(520px, 100%);
+      border:1px solid var(--border);
+      background:#070707;
+      border-radius: 16px;
+      padding: 16px;
+    }
+    #lock input{
+      width:100%;
+      box-sizing:border-box;
+      min-width: 0;
+    }
+    #lock .hint{
+      margin-top:10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
   </style>
 </head>
 <body>
-  <h1>준성셜록</h1>
 
-  <div class="row">
-    <label for="seed">방제목</label>
-    <input id="seed" placeholder="예: 숫자 또는 문자" />
-  </div>
-
-  <div class="row">
-    <label>플레이어 선택</label>
-    <div class="picks" id="picks">
-      <div class="pick" data-p="a">A<small>플레이어</small></div>
-      <div class="pick" data-p="b">B<small>플레이어</small></div>
-      <div class="pick" data-p="c">C<small>플레이어</small></div>
-      <div class="pick" data-p="d">D<small>플레이어</small></div>
-      <div class="pick e" data-p="e">E<small>범인</small></div>
+  <!-- 🔐 잠금 화면 -->
+  <div id="lock">
+    <div class="box">
+      <h2>🔒 암호 입력</h2>
+      <div class="row" style="margin:0;">
+        <input id="pw" type="password" placeholder="암호를 입력하세요" autocomplete="off" />
+        <button class="primary" id="unlock">확인</button>
+      </div>
+      <div id="pwErr" class="err" style="display:none; margin-top:10px;">암호가 틀림</div>
+      <div class="hint">암호 맞으면 게임 화면이 열림</div>
     </div>
   </div>
 
-  <div class="row">
-    <button class="primary" id="btn">확인</button>
-    <button class="ghost" id="reset">초기화</button>
-  </div>
+  <!-- 🔓 실제 앱 화면 -->
+  <div id="app" style="display:none;">
+    <h1>준성셜록</h1>
 
-  <div id="out">
-    <div class="muted">시드를 입력하고 플레이어를 선택하세요.</div>
+    <div class="row">
+      <label for="seed">방제목</label>
+      <input id="seed" placeholder="예: 숫자 또는 문자" />
+    </div>
+
+    <div class="row">
+      <label>플레이어 선택</label>
+      <div class="picks" id="picks">
+        <div class="pick" data-p="a">A<small>플레이어</small></div>
+        <div class="pick" data-p="b">B<small>플레이어</small></div>
+        <div class="pick" data-p="c">C<small>플레이어</small></div>
+        <div class="pick" data-p="d">D<small>플레이어</small></div>
+        <div class="pick e" data-p="e">E<small>범인</small></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="primary" id="btn">확인</button>
+      <button class="ghost" id="reset">초기화</button>
+    </div>
+
+    <div id="out">
+      <div class="muted">시드를 입력하고 플레이어를 선택하세요.</div>
+    </div>
   </div>
 
 <script>
+  /* ========= 🔐 잠금 로직 ========= */
+  const PASSWORD = "junsung";
+
+  const lockEl = document.getElementById("lock");
+  const appEl  = document.getElementById("app");
+  const pwEl   = document.getElementById("pw");
+  const unlockBtn = document.getElementById("unlock");
+  const pwErrEl = document.getElementById("pwErr");
+
+  function tryUnlock(){
+    const v = pwEl.value;
+    if (v === PASSWORD) {
+      pwErrEl.style.display = "none";
+      lockEl.style.display = "none";
+      appEl.style.display = "block";
+      // 커서 바로 방제목으로
+      document.getElementById("seed").focus();
+    } else {
+      pwErrEl.style.display = "block";
+      pwEl.select();
+    }
+  }
+
+  unlockBtn.addEventListener("click", tryUnlock);
+  pwEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryUnlock();
+  });
+
+  /* ========= 기존 게임 로직 ========= */
   const CARDS = [
     { name: "세바스찬 모런", tags: ["해골","주먹"] },
     { name: "아이린 애들러", tags: ["주먹","전구","목걸이"] },
@@ -258,7 +338,6 @@
     for (const c of cards) {
       for (const t of c.tags) counts[t] = (counts[t] || 0) + 1;
     }
-    // 보기 좋게 정렬(많은 순 -> 가나다)
     return Object.entries(counts)
       .sort((a,b) => (b[1]-a[1]) || a[0].localeCompare(b[0], "ko"))
       .map(([tag, n]) => ({ tag, n }));
@@ -304,7 +383,7 @@
       <div class="cards">
         ${myCards.map(c => {
           const name = escapeHtml(c.name);
-          const tags = c.tags.map(escapeHtml).join(", ");
+          const tags = c.tags.map(t => `${escapeHtml(t)}1`).join(", ");
           return `🃏 ${name} <span class="tagline">[${tags}]</span>`;
         }).join("<br>")}
       </div>
@@ -325,4 +404,3 @@
 </script>
 </body>
 </html>
-
